@@ -33,7 +33,7 @@ import ReactiveSwift
 ///     ```
 ///     One(), Two(), Three(), Four(), Five()
 ///     ```
-public typealias Epic<State> = (_ actions: Signal<Action, Never>, _ state: Property<State>) -> Signal<Action, Never>
+public typealias Epic<State, Action> = (_ actions: Signal<Action, Never>, _ state: Property<State>) -> Signal<Action, Never>
 
 /// Creates middleware with a single epic.
 /// Epic will receive action only after it has travelled through other middlewares and reducers,
@@ -43,7 +43,7 @@ public typealias Epic<State> = (_ actions: Signal<Action, Never>, _ state: Prope
 ///
 /// - Parameter epic: Epic that should be wrapped into middleware.
 /// - Returns: Middleware wrapping epic.
-public func createEpicMiddleware<State>(_ epic: @escaping Epic<State>) -> Middleware<State> {
+public func createEpicMiddleware<State, Action>(_ epic: @escaping Epic<State, Action>) -> Middleware<State, Action> {
     return { getState, dispatch, next in
         guard let initialState = getState() else { return next }
 
@@ -77,7 +77,7 @@ public func createEpicMiddleware<State>(_ epic: @escaping Epic<State>) -> Middle
 ///
 /// - Parameter epics: Array of epics to combine.
 /// - Returns: Combined epic.
-public func combineEpics<State>(_ epics: [Epic<State>]) -> Epic<State> {
+public func combineEpics<State, Action>(_ epics: [Epic<State, Action>]) -> Epic<State, Action> {
     return { actions, state in
         Signal.merge(epics.map { $0(actions, state) })
     }

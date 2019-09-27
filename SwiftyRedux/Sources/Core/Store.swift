@@ -19,10 +19,10 @@ import Dispatch
 ///
 /// You initialize store with initial state, main reducer and an array of middleware.
 /// Store has its own queue for managing observers and state changes through reducers in a serial way.
-public final class Store<State> {
+public final class Store<State, Action> {
 
     /// Main reducer
-    private let reducer: Reducer<State>
+    private let reducer: Reducer<State, Action>
 
     /// Synchronization read-write queue
     private let queue: ReadWriteQueue
@@ -36,7 +36,7 @@ public final class Store<State> {
     /// It passes action to the middleware, then - to the main reducer, and finally sets state provided by reducer and notifies observers.
     ///
     /// Action => Middleware => Reducers => Set State & Notify Observers
-    private var dispatchFunction: Dispatch!
+    private var dispatchFunction: Dispatch<Action>!
 
     /// Current state private property that we operate on inside store.
     private var currentState: State
@@ -59,7 +59,7 @@ public final class Store<State> {
     ///     - state: Initial state.
     ///     - reducer: Main reducer. Unlike middleware, reducers are already nested, thus it's not an array.
     ///     - middleware: Array of middlewares. No need to reduce them into single one before. Defaults to empty array.
-    public init(id: String = "swifty-redux.store", state: State, reducer: @escaping Reducer<State>, middleware: [Middleware<State>] = []) {
+    public init(id: String = "swifty-redux.store", state: State, reducer: @escaping Reducer<State, Action>, middleware: [Middleware<State, Action>] = []) {
         self.queue = ReadWriteQueue(label: "\(id).queue")
         self.currentState = state
         self.reducer = reducer
@@ -104,7 +104,7 @@ public final class Store<State> {
     /// - Remark: Performs synchronously.
     private func defaultDispatch(from action: Action) {
         queue.writeAndWait {
-            self.currentState = self.reducer(self.currentState, action)
+            self.reducer(&self.currentState, action)
             self.observer.update(self.currentState)
         }
     }

@@ -9,7 +9,7 @@ private enum AnyAction: Action, Equatable {
 private class MockSideEffect {
     private(set) var calledWithStoreCount: Int = 0
     private(set) var calledWithAction: [Action] = []
-    private(set) var sideEffect: SideEffect<State>!
+    private(set) var sideEffect: SideEffect<State, Action>!
 
     init() {
         sideEffect = { getState, dispatch in
@@ -41,7 +41,7 @@ class SideEffectsTests: XCTestCase {
 
     func testSideEffectMiddlewareCanGetState() {
         var result: State?
-        let middleware: Middleware<State> = createSideEffectMiddleware { getState, dispatch in
+        let middleware: Middleware<State, Action> = createSideEffectMiddleware { getState, dispatch in
             return { action in result = getState() }
         }
         let dispatch = middleware({ 42 }, { _ in }, { _ in })
@@ -53,7 +53,7 @@ class SideEffectsTests: XCTestCase {
 
     func testSideEffectMiddlewareCanDispatch() {
         var result: AnyAction?
-        let middleware: Middleware<State> = createSideEffectMiddleware { getState, dispatch in
+        let middleware: Middleware<State, Action> = createSideEffectMiddleware { getState, dispatch in
             return { action in
                 if action as! AnyAction == .one {
                     dispatch(AnyAction.two)
@@ -83,7 +83,7 @@ class SideEffectsTests: XCTestCase {
     func testSideEffectMiddlewareNextIsCalledBeforeSideEffect() {
         enum Call: Equatable { case next, action }
         var result = [Call]()
-        let middleware: Middleware<State> = createSideEffectMiddleware { getState, dispatch in
+        let middleware: Middleware<State, Action> = createSideEffectMiddleware { getState, dispatch in
             return { action in
                 result.append(.action)
             }

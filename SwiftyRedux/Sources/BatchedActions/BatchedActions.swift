@@ -1,3 +1,4 @@
+/*
 /// [Batched action](https://github.com/tshelburne/redux-batched-actions) is an action that combines multiple actions.
 /// Multiple batched actions can be combined as well as they conform to `Action` protocol.
 public protocol BatchedActions: Action {
@@ -109,3 +110,4 @@ public func batchDispatchMiddleware<State>() -> Middleware<State> {
         }
     }
 }
+*/

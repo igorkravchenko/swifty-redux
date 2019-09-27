@@ -7,13 +7,13 @@ class PerformanceTests: XCTestCase {
     typealias State = Int
 
     var observers: [(State) -> Void]!
-    var store: Store<State>!
+    var store: Store<State, Action>!
 
     override func setUp() {
         super.setUp()
 
         observers = (0..<3000).map { _ in { _ in } }
-        store = Store<State>(state: 0, reducer: { state, action in state })
+        store = Store<State, Action>(state: 0, reducer: { _, _ in })
     }
 
     func testNotify() {

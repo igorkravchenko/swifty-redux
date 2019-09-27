@@ -11,7 +11,7 @@ private enum AnyAction: SwiftyRedux.Action, Equatable {
 private class MockEpic {
     private(set) var calledSetupCount: Int = 0
     private(set) var calledWithAction: [SwiftyRedux.Action] = []
-    private(set) var epic: Epic<State>!
+    private(set) var epic: Epic<State, AnyAction>!
 
     init() {
         epic = { actions, state in

@@ -21,7 +21,7 @@
 ///     - dispatch: Dispatches given action to the store. Performs asynchronously when used in store.
 ///         The action will travel the whole middleware chain again, including the current middleware and all the side effects.
 /// - Returns: Dispatch function where side effect receives actions.
-public typealias SideEffect<State> = (_ getState: @escaping GetState<State>, _ dispatch: @escaping Dispatch) -> Dispatch
+public typealias SideEffect<State, Action> = (_ getState: @escaping GetState<State>, _ dispatch: @escaping Dispatch<Action>) -> Dispatch<Action>
 
 /// Creates middleware with a single side effect.
 /// Side effect will receive action only after it has travelled through other middlewares and reducers,
@@ -31,7 +31,7 @@ public typealias SideEffect<State> = (_ getState: @escaping GetState<State>, _ d
 ///
 /// - Parameter sideEffect: Side effect that should be wrapped into middleware.
 /// - Returns: Middleware wrapping side effect.
-public func createSideEffectMiddleware<State>(_ sideEffect: @escaping SideEffect<State>) -> Middleware<State> {
+public func createSideEffectMiddleware<State, Action>(_ sideEffect: @escaping SideEffect<State, Action>) -> Middleware<State, Action> {
     return { getState, dispatch, next in
         let sideEffectDispatch = sideEffect(getState, dispatch)
         return { action in
@@ -50,11 +50,11 @@ public func createSideEffectMiddleware<State>(_ sideEffect: @escaping SideEffect
 ///     - second: Second side effect.
 ///     - rest: A variadic parameter of the rest of side effects to combine into one.
 /// - Returns: Combined side effect.
-public func combineSideEffects<State>(
-    _ first: @escaping SideEffect<State>,
-    _ second: @escaping SideEffect<State>,
-    _ rest: SideEffect<State>...
-) -> SideEffect<State> {
+public func combineSideEffects<State, Action>(
+    _ first: @escaping SideEffect<State, Action>,
+    _ second: @escaping SideEffect<State, Action>,
+    _ rest: SideEffect<State, Action>...
+) -> SideEffect<State, Action> {
     let sideEffects = [first, second] + rest
     return { getState, dispatch in
         let dispatches = sideEffects.map { $0(getState, dispatch) }

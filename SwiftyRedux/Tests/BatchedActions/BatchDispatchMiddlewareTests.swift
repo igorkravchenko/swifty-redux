@@ -1,6 +1,6 @@
 import XCTest
 @testable import SwiftyRedux
-
+/*
 private typealias State = Int
 private enum AnyAction: Action, Equatable {
     case one, two, three, four
@@ -73,3 +73,4 @@ class BatchDispatchMiddlewareTests: XCTestCase {
         XCTAssertEqual(dispatchCalledWithAction as! [AnyAction], [.one, .two])
     }
 }
+*/

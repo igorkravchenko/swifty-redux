@@ -7,14 +7,14 @@ private struct AnyAction: Action, Equatable {}
 
 class ReduxCommandTests: XCTestCase {
     private var initialState: State!
-    private var nopReducer: Reducer<State>!
-    private var nopMiddleware: Middleware<State>!
+    private var nopReducer: Reducer<State, Action>!
+    private var nopMiddleware: Middleware<State, Action>!
 
     override func setUp() {
         super.setUp()
 
         initialState = 0
-        nopReducer = { state, action in state }
+        nopReducer = { state, action in }
         nopMiddleware = createFallThroughMiddleware { getState, dispatch in return { action in } }
     }
 
@@ -22,7 +22,7 @@ class ReduxCommandTests: XCTestCase {
     func testStore_whenSubscribingWithCommand_andIncludingCurrentState_shouldRedirectToOriginalMethod_byCallingCommandForCurrentStateAndEveryNextActionDispatched() {
         var result = [State]()
         let queue = DispatchQueue(label: "testStore_whenSubscribingWithCommand_shouldRedirectToOriginalMethod_byCallingCommandForEveryActionDispatched")
-        let store = Store<State>(state: initialState, reducer: { s, a in s + 1 }, middleware: [nopMiddleware])
+        let store = Store<State, Action>(state: initialState, reducer: { s, a in s += 1 }, middleware: [nopMiddleware])
 
         store.subscribe(on: queue, includingCurrentState: true, Command { value in result.append(value) })
 
@@ -41,7 +41,7 @@ class ReduxCommandTests: XCTestCase {
         let key = DispatchSpecificKey<String>()
         let queue = DispatchQueue(label: id)
         queue.setSpecific(key: key, value: id)
-        let store = Store<State>(state: initialState, reducer: nopReducer, middleware: [nopMiddleware])
+        let store = Store<State, Action>(state: initialState, reducer: nopReducer, middleware: [nopMiddleware])
 
         store.subscribe(on: queue, includingCurrentState: false, Command { value in
             XCTAssertEqual(DispatchQueue.getSpecific(key: key), id)
@@ -56,7 +56,7 @@ class ReduxCommandTests: XCTestCase {
     func testStore_whenSubscribingWithCommand_shouldRedirectToOriginalMethod_byCallingCommandForEveryActionDispatched() {
         var result = [State]()
         let queue = DispatchQueue(label: "testStore_whenSubscribingWithCommand_shouldRedirectToOriginalMethod_byCallingCommandForEveryActionDispatched")
-        let store = Store<State>(state: initialState, reducer: { s, a in s + 1 }, middleware: [nopMiddleware])
+        let store = Store<State, Action>(state: initialState, reducer: { s, a in s += 1 }, middleware: [nopMiddleware])
 
         store.subscribe(on: queue, includingCurrentState: false, Command { value in result.append(value) })
 

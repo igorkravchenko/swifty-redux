@@ -13,7 +13,7 @@ private struct StringAction: Action {
 private class MockMiddleware {
     private(set) var calledWithStoreCount: Int = 0
     private(set) var calledWithAction: [Action] = []
-    private(set) var middleware: Middleware<State>!
+    private(set) var middleware: Middleware<State, Action>!
 
     init() {
         middleware = createMiddleware { getState, dispatch, next in
@@ -28,7 +28,7 @@ private class MockMiddleware {
 private class MockFallThroughMiddleware {
     private(set) var calledWithStoreCount: Int = 0
     private(set) var calledWithAction: [Action] = []
-    private(set) var middleware: Middleware<State>!
+    private(set) var middleware: Middleware<State, Action>!
 
     init() {
         middleware = createFallThroughMiddleware { getState, dispatch in
@@ -42,14 +42,14 @@ private class MockFallThroughMiddleware {
 
 class StoreTests: XCTestCase {
     private var initialState: State!
-    private var nopReducer: Reducer<State>!
-    private var nopMiddleware: Middleware<State>!
+    private var nopReducer: Reducer<State, Action>!
+    private var nopMiddleware: Middleware<State, Action>!
 
     override func setUp() {
         super.setUp()
 
         initialState = 0
-        nopReducer = { state, action in state }
+        nopReducer = { state, action in }
         nopMiddleware = createFallThroughMiddleware { getState, dispatch in return { action in } }
     }
 
@@ -126,7 +126,7 @@ class StoreTests: XCTestCase {
     }
 
     func testStore_afterSubscribeAndDispatchFlow_andItDeinits_allDisposablesShouldDispose() {
-        weak var store: Store<State>?
+        weak var store: Store<State, Action>?
         var disposable: Disposable!
 
         autoreleasepool {
@@ -142,17 +142,16 @@ class StoreTests: XCTestCase {
 
     func testMiddleware_whenRunOnDefaultQueue_shouldBeExecutedSequentiallyWithReducer() {
         var result = [String]()
-        let middleware: Middleware<State> = createMiddleware { getState, dispatch, next in
+        let middleware: Middleware<State, Action> = createMiddleware { getState, dispatch, next in
             return { action in
                 result.append("m-\(action)")
                 next(action)
             }
         }
-        let reducer: Reducer<State> = { state, action in
+        let reducer: Reducer<State, Action> = { state, action in
             result.append("r-\(action)")
-            return state
         }
-        let store = Store<State>(state: initialState, reducer: reducer, middleware: [middleware])
+        let store = Store<State, Action>(state: initialState, reducer: reducer, middleware: [middleware])
 
         store.dispatch(AnyAction.one)
         store.dispatch(AnyAction.two)
@@ -163,7 +162,7 @@ class StoreTests: XCTestCase {
     }
 
     func testMiddleware_evenIfRunOnDifferentQueues_shouldBeExecutedSequentially() {
-        func asyncMiddleware(id: String, qos: DispatchQoS.QoSClass) -> Middleware<State> {
+        func asyncMiddleware(id: String, qos: DispatchQoS.QoSClass) -> Middleware<State, Action> {
             let asyncExpectation = expectation(description: "\(id) async middleware expectation")
             return createMiddleware { getState, dispatch, next in
                 return { action in
@@ -177,15 +176,14 @@ class StoreTests: XCTestCase {
         }
 
         var result = ""
-        let reducer: Reducer<State> = { state, action in
+        let reducer: Reducer<State, Action> = { state, action in
             let action = (action as! StringAction).value
             result += action
-            return state
         }
         let middleware1 = asyncMiddleware(id: "first", qos: .default)
         let middleware2 = asyncMiddleware(id: "second", qos: .userInteractive)
         let middleware3 = asyncMiddleware(id: "third", qos: .background)
-        let store = Store<State>(state: initialState, reducer: reducer, middleware: [middleware1, middleware2, middleware3])
+        let store = Store<State, Action>(state: initialState, reducer: reducer, middleware: [middleware1, middleware2, middleware3])
 
         store.dispatch(StringAction("action"))
 
@@ -195,14 +193,14 @@ class StoreTests: XCTestCase {
     }
 
     func testStore_whenSubscribingNotIncludingCurrentState_shouldOnlyReceiveNextStateUpdates() {
-        let reducer: Reducer<State> = { state, action in
+        let reducer: Reducer<State, Action> = { state, action in
             switch action {
-            case let action as OpAction where action == OpAction.mul: return state * 2
-            case let action as OpAction where action == OpAction.inc: return state + 3
-            default: return state
+            case let action as OpAction where action == OpAction.mul: return state *= 2
+            case let action as OpAction where action == OpAction.inc: return state += 3
+            default: break
             }
         }
-        let store = Store<State>(state: 3, reducer: reducer)
+        let store = Store<State, Action>(state: 3, reducer: reducer)
 
         var result: [State] = []
         store.subscribe(includingCurrentState: false) { state in
@@ -215,14 +213,14 @@ class StoreTests: XCTestCase {
     }
 
     func testStore_whenSubscribingIncludingCurrentState_shouldImmediatelyReceiveCurrentStateAndKeepReceivingNextStateUpdates() {
-        let reducer: Reducer<State> = { state, action in
+        let reducer: Reducer<State, Action> = { state, action in
             switch action {
-            case let action as OpAction where action == OpAction.mul: return state * 2
-            case let action as OpAction where action == OpAction.inc: return state + 3
-            default: return state
+            case let action as OpAction where action == OpAction.mul: return state *= 2
+            case let action as OpAction where action == OpAction.inc: return state += 3
+            default: break
             }
         }
-        let store = Store<State>(state: 3, reducer: reducer)
+        let store = Store<State, Action>(state: 3, reducer: reducer)
 
         var result: [State] = []
         store.subscribe(includingCurrentState: true) { state in
@@ -239,7 +237,7 @@ class StoreTests: XCTestCase {
         let queueId = DispatchSpecificKey<String>()
         let queue = DispatchQueue(label: id)
         queue.setSpecific(key: queueId, value: id)
-        let store = Store<State>(state: initialState, reducer: nopReducer)
+        let store = Store<State, Action>(state: initialState, reducer: nopReducer)
 
         var result: String!
         let queueExpectation = expectation(description: id)
@@ -261,7 +259,7 @@ class StoreTests: XCTestCase {
         let queueId = DispatchSpecificKey<String>()
         let queue = DispatchQueue(label: id)
         queue.setSpecific(key: queueId, value: id)
-        let store = Store<State>(state: initialState, reducer: nopReducer)
+        let store = Store<State, Action>(state: initialState, reducer: nopReducer)
 
         var result: String!
         let onQueueExpectation = expectation(description: "\(id) on queue")
@@ -283,10 +281,10 @@ class StoreTests: XCTestCase {
     }
 
     func testStore_whenUnsubscribing_stopReceivingStateUpdates() {
-        let reducer: Reducer<State> = { state, action in
-            (action as! AnyAction).rawValue
+        let reducer: Reducer<State, Action> = { state, action in
+            state = (action as! AnyAction).rawValue
         }
-        let store = Store<State>(state: initialState, reducer: reducer)
+        let store = Store<State, Action>(state: initialState, reducer: reducer)
 
         var result: [State] = []
         let disposable = store.subscribe(includingCurrentState: false) { state in

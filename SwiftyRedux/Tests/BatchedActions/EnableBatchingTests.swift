@@ -1,6 +1,6 @@
 import XCTest
 @testable import SwiftyRedux
-
+/*
 private typealias State = Int
 private enum AnyAction: Action, Equatable {
     case one, two, three, four, five
@@ -71,3 +71,4 @@ class EnableBatchingTests: XCTestCase {
         XCTAssertEqual(mock.calledWithAction as! [AnyAction], [.one, .two])
     }
 }
+*/

@@ -10,4 +10,4 @@
 ///     - state: Current state.
 ///     - action: Incoming action.
 /// - Returns: New state as a result of applying action to the current state.
-public typealias Reducer<State> = (_ state: State, _ action: Action) -> State
+public typealias Reducer<State, Action> = (_ state: inout State, _ action: Action) -> Void

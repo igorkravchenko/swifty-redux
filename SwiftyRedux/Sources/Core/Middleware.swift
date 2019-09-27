@@ -2,7 +2,7 @@
 public typealias GetState<State> = () -> State?
 
 /// Dispatches action.
-public typealias Dispatch = (Action) -> Void
+public typealias Dispatch<Action> = (Action) -> Void
 
 /// [Middleware](https://redux.js.org/advanced/middleware) provides a third-party extension point between dispatching an action,
 /// and the moment it reaches the reducer.
@@ -30,17 +30,17 @@ public typealias Dispatch = (Action) -> Void
 ///         }
 ///     }
 ///     ```
-public typealias Middleware<State> = (
+public typealias Middleware<State, Action> = (
     _ getState: @escaping GetState<State>,
-    _ dispatch: @escaping Dispatch,
-    _ next: @escaping Dispatch
-) -> Dispatch
+    _ dispatch: @escaping Dispatch<Action>,
+    _ next: @escaping Dispatch<Action>
+) -> Dispatch<Action>
 
 /// Chains array of middlewares into single middleware. Each middleware will be processed in the same order as it's stored in the array.
 ///
 /// - Parameter middleware: Array of middleware to chain into single one.
 /// - Returns: Resulting middleware
-public func applyMiddleware<State>(_ middleware: [Middleware<State>]) -> Middleware<State> {
+public func applyMiddleware<State, Action>(_ middleware: [Middleware<State, Action>]) -> Middleware<State, Action> {
     return { getState, dispatch, next in
         return middleware
             // array is reversed to form a call-stack. Thus who's put there first, will process action last.
@@ -60,9 +60,9 @@ public func applyMiddleware<State>(_ middleware: [Middleware<State>]) -> Middlew
 ///     - dispatch: Dispatches given action to the store. Performs asynchronously when used in store.
 ///         The action will actually travel the whole middleware chain again, including the current middleware.
 /// - Returns: Resulting middleware
-public func createFallThroughMiddleware<State>(
-    _ middleware: @escaping (_ getState: @escaping GetState<State>, _ dispatch: @escaping Dispatch) -> Dispatch
-) -> Middleware<State> {
+public func createFallThroughMiddleware<State, Action>(
+    _ middleware: @escaping (_ getState: @escaping GetState<State>, _ dispatch: @escaping Dispatch<Action>) -> Dispatch<Action>
+) -> Middleware<State, Action> {
     return { getState, dispatch, next in
         let current = middleware(getState, dispatch)
         return { action in
@@ -77,6 +77,6 @@ public func createFallThroughMiddleware<State>(
 ///
 /// - Parameter middleware: Any middleware.
 /// - Returns: Same middleware without any changes made to it.
-public func createMiddleware<State>(_ middleware: @escaping Middleware<State>) -> Middleware<State> {
+public func createMiddleware<State, Action>(_ middleware: @escaping Middleware<State, Action>) -> Middleware<State, Action> {
     return middleware
 }
