@@ -1,6 +1,6 @@
 import XCTest
 @testable import SwiftyRedux
-/*
+
 private typealias State = Int
 private enum AnyAction: Action, Equatable {
     case one, two, three, four
@@ -9,12 +9,12 @@ private enum AnyAction: Action, Equatable {
 class BatchDispatchMiddlewareTests: XCTestCase {
     var nextCalledWithAction: [Action]!
     var dispatchCalledWithAction: [Action]!
-    var dispatchMiddleware: Dispatch!
+    var dispatchMiddleware: Dispatch<Action>!
 
     override func setUp() {
         super.setUp()
 
-        let middleware: Middleware<State> = batchDispatchMiddleware()
+        let middleware: Middleware<State, Action> = batchDispatchMiddleware()
         nextCalledWithAction = []
         dispatchCalledWithAction = []
         dispatchMiddleware = middleware(
@@ -73,4 +73,4 @@ class BatchDispatchMiddlewareTests: XCTestCase {
         XCTAssertEqual(dispatchCalledWithAction as! [AnyAction], [.one, .two])
     }
 }
-*/
+

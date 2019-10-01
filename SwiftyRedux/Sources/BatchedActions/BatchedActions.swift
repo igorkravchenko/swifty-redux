@@ -1,4 +1,4 @@
-/*
+
 /// [Batched action](https://github.com/tshelburne/redux-batched-actions) is an action that combines multiple actions.
 /// Multiple batched actions can be combined as well as they conform to `Action` protocol.
 public protocol BatchedActions: Action {
@@ -57,13 +57,15 @@ public struct BatchAction: BatchedActions {
 ///
 /// - Important: Note that `batchDispatchMiddleware` and `enableBatching` should not be used together
 ///     as `batchDispatchMiddleware` calls next on the action it receives, whilst also dispatching each of the bundled actions.
-public func enableBatching<State>(_ reducer: @escaping Reducer<State>) -> Reducer<State> {
-    func batchingReducer(_ state: State, _ action: Action) -> State {
+public func enableBatching<State>(_ reducer: @escaping Reducer<State, Action>) -> Reducer<State, Action> {
+    func batchingReducer(_ state: inout State, _ action: Action) {
         guard let batchAction = action as? BatchedActions else {
-            return reducer(state, action)
+            reducer(&state, action)
+            return
         }
-        return batchAction.actions.reduce(state, batchingReducer)
+        batchAction.actions.forEach { batchingReducer(&state, $0) }
     }
+    
     return batchingReducer
 }
 
@@ -91,8 +93,8 @@ public func enableBatching<State>(_ reducer: @escaping Reducer<State>) -> Reduce
 ///
 /// - Important: Note that `batchDispatchMiddleware` and `enableBatching` should not be used together
 ///     as `batchDispatchMiddleware` calls next on the action it receives, whilst also dispatching each of the bundled actions.
-public func batchDispatchMiddleware<State>() -> Middleware<State> {
-    func dispatchChildActions(_ getState: @escaping GetState<State>, _ dispatch: @escaping Dispatch, _ action: Action) {
+public func batchDispatchMiddleware<State>() -> Middleware<State, Action> {
+    func dispatchChildActions(_ getState: @escaping GetState<State>, _ dispatch: @escaping Dispatch<Action>, _ action: Action) {
         guard let batchAction = action as? BatchedActions else {
             return dispatch(action)
         }
@@ -110,4 +112,4 @@ public func batchDispatchMiddleware<State>() -> Middleware<State> {
         }
     }
 }
-*/
+
