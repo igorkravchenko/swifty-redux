@@ -5,8 +5,11 @@ import PackageDescription
 let package = Package(
     name: "SwiftyRedux",
     products: [
-    .library(name: "SwiftyReduxCore",
+    .library(name: "Core",
              targets: ["SwiftyReduxCore"]),
+    .library(name: "Command",
+             targets: ["SwiftyReduxCommand"]),
+    
     ],
     targets: [
         .target(name: "SwiftyReduxCore",
@@ -14,6 +17,12 @@ let package = Package(
                 path: "./SwiftyRedux/Sources/Core"),
         .testTarget(name: "SwiftyReduxTests",
                     dependencies: [],
-                    path: "./SwiftyRedux/Tests/Core")
+                    path: "./SwiftyRedux/Tests/Core"),
+        .target(name: "SwiftyReduxCommand",
+                dependencies: [],
+                path: "./SwiftyRedux/Sources/Command"),
+        .testTarget(name: "SwiftyReduxCommandTests",
+                    dependencies: [],
+                    path: "./SwiftyRedux/Tests/Command")
     ]
 )
