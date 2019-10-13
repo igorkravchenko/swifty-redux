@@ -11,6 +11,7 @@ let package = Package(
              targets: ["SwiftyReduxCommand"]),
     
     ],
+    dependencies: [],
     targets: [
         .target(name: "SwiftyReduxCore",
                 dependencies: [],
@@ -19,7 +20,7 @@ let package = Package(
                     dependencies: [],
                     path: "./SwiftyRedux/Tests/Core"),
         .target(name: "SwiftyReduxCommand",
-                dependencies: [],
+                dependencies: ["SwiftyReduxCore"],
                 path: "./SwiftyRedux/Sources/Command"),
         .testTarget(name: "SwiftyReduxCommandTests",
                     dependencies: [],
