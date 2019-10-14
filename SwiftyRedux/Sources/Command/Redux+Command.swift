@@ -1,5 +1,10 @@
 /// Redux components extensions to receive Command instead of plain function for easier debugging.
 
+#if canImport(SwiftyReduxCore)
+import SwiftyReduxCore
+import Dispatch
+#endif
+
 // MARK: - Store
 
 extension Store {
