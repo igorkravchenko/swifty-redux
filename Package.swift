@@ -9,6 +9,8 @@ let package = Package(
              targets: ["SwiftyReduxCore"]),
     .library(name: "Command",
              targets: ["SwiftyReduxCommand"]),
+    .library(name: "SideEffects",
+    targets: ["SwiftyReduxSideEffects"]),
     
     ],
     dependencies: [],
@@ -24,6 +26,12 @@ let package = Package(
                 path: "./SwiftyRedux/Sources/Command"),
         .testTarget(name: "SwiftyReduxCommandTests",
                     dependencies: [],
-                    path: "./SwiftyRedux/Tests/Command")
+                path: "./SwiftyRedux/Tests/Command"),
+        .target(name: "SwiftyReduxSideEffects",
+                dependencies: ["SwiftyReduxCore"],
+                path: "./SwiftyRedux/Sources/SideEffects"),
+        .testTarget(name: "SwiftyReduxSideEffectsTests",
+                    dependencies: [],
+                    path: "./SwiftyRedux/Tests/SideEffects")
     ]
 )
