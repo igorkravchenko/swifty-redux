@@ -10,7 +10,6 @@
 
 #if canImport(SwiftyReduxCore)
 import SwiftyReduxCore
-import Dispatch
 #endif
 
 ///
