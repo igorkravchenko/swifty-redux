@@ -1,3 +1,4 @@
+
 /// Side effect is a function that allows you read store's state, dispatch actions and receive actions.
 /// You can perform any async logic here like making network calls, handling a socket connection or talking to a Database.
 /// You can combine many side effects in a single middleware.
@@ -6,6 +7,12 @@
 /// but have more imperative nature.
 /// Same as Epics, side effects are run **after** reducers have received and processed the action,
 /// so that, they can't "swallow" or delay it.
+
+#if canImport(SwiftyReduxCore)
+import SwiftyReduxCore
+import Dispatch
+#endif
+
 ///
 /// You'd use `combineSideEffects` along with `createSideEffectMiddleware` to pass multiple side effects as a middleware to the store.
 ///
